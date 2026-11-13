@@ -133,7 +133,7 @@ GET /pub/u/{username}/{slug}/slots?start=YYYY-MM-DD&days=7&tz=Asia/Shanghai → 
 POST /pub/u/{username}/{slug}/bookings `{"start": "...Z", "name": "", "email": "", "note": "", "timezone": "Asia/Shanghai", "company": ""}`（company 为蜜罐，非空即静默成功但不入库）→ 201 `{"data": {"booking": {...BookingGuestView}, "manage_url": "/b/..."}}`；冲突 → booking/slot_unavailable
 
 ### 预约管理（凭签名链接令牌）
-GET /pub/b/{token} → `{"data": {"event_type": {"name":"", "duration_minutes":30}, "host_display_name": "", "start": "", "end": "", "status": "confirmed", "guest_name": "", "guest_note": "", "timezone": ""}}`
+GET /pub/b/{token} → `{"data": {"event_type": {"name":"", "slug":"", "duration_minutes":30}, "host_username": "", "host_display_name": "", "start": "", "end": "", "status": "confirmed", "guest_name": "", "guest_note": "", "timezone": ""}}`（host_username + slug 供改期页复用槽位接口）
 POST /pub/b/{token}/cancel `{reason?}` → null（事件置 STATUS:CANCELLED、邮件双方）
 POST /pub/b/{token}/reschedule `{"start": "...Z"}` → BookingGuestView（重校验槽位）
 
