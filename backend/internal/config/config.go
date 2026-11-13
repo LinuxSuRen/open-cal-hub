@@ -37,6 +37,10 @@ type Auth struct {
 	RefreshTokenTTL        time.Duration `yaml:"refresh_ttl"`
 	FirstUserAdmin         bool          `yaml:"first_user_admin"`
 	RequireEmailValidation bool          `yaml:"require_email_validation"`
+	// 初始管理员引导（issue #13）：空库首启时创建 admin。
+	// 两项需同时配置；创建后建议改密并移除配置。
+	BootstrapAdminEmail    string `yaml:"bootstrap_admin_email"`
+	BootstrapAdminPassword string `yaml:"bootstrap_admin_password"`
 }
 
 type Mail struct {
@@ -143,6 +147,8 @@ func applyEnv(c *Config) {
 	setDur("CALHUB_AUTH_REFRESH_TTL", &c.Auth.RefreshTokenTTL)
 	setBool("CALHUB_AUTH_FIRST_USER_ADMIN", &c.Auth.FirstUserAdmin)
 	setBool("CALHUB_AUTH_REQUIRE_EMAIL_VALIDATION", &c.Auth.RequireEmailValidation)
+	setStr("CALHUB_AUTH_BOOTSTRAP_ADMIN_EMAIL", &c.Auth.BootstrapAdminEmail)
+	setStr("CALHUB_AUTH_BOOTSTRAP_ADMIN_PASSWORD", &c.Auth.BootstrapAdminPassword)
 	setStr("CALHUB_MAIL_MODE", &c.Mail.Mode)
 	setStr("CALHUB_MAIL_FROM", &c.Mail.From)
 	setStr("CALHUB_MAIL_HOST", &c.Mail.Host)
