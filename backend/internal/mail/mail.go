@@ -28,8 +28,9 @@ type Sender interface {
 type Outbox struct{ DB *sql.DB }
 
 func (o *Outbox) Send(ctx context.Context, msg Message) error {
-	_, err := o.DB.ExecContext(ctx, `INSERT INTO mail_outbox (to_addr, subject, body_text, body_html, kind, status) VALUES (?,?,?,?,?, 'sent')`,
-		msg.To, msg.Subject, msg.Text, msg.HTML, msg.Kind)
+	now := time.Now().UTC().Format(time.RFC3339)
+	_, err := o.DB.ExecContext(ctx, `INSERT INTO mail_outbox (to_addr, subject, body_text, body_html, kind, status, created_at, sent_at) VALUES (?,?,?,?,?, 'sent', ?, ?)`,
+		msg.To, msg.Subject, msg.Text, msg.HTML, msg.Kind, now, now)
 	return err
 }
 

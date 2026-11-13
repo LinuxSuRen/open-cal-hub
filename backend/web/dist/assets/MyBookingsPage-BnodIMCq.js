@@ -1,1 +1,0 @@
-import{d as s,c as a,a as o,o as n}from"./index-5W3pD9Hk.js";const t={class:"page"},c=s({__name:"MyBookingsPage",setup(r){return(l,e)=>(n(),a("div",t,[...e[0]||(e[0]=[o("h1",null,"我的预约",-1),o("p",null,"建设中…",-1)])]))}});export{c as default};

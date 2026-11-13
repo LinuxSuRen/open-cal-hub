@@ -1,0 +1,1 @@
+import{_ as t,o as s,i as n,b as r,k as a,w as l,l as c,r as _}from"./index-DJ3uErgb.js";const d={},i={class:"page"};function u(f,e){const o=_("router-link");return s(),n("div",i,[e[1]||(e[1]=r("h1",null,"页面不存在",-1)),a(o,{to:"/"},{default:l(()=>[...e[0]||(e[0]=[c("返回首页",-1)])]),_:1})])}const m=t(d,[["render",u]]);export{m as default};

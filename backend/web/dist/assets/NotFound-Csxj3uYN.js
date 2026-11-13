@@ -1,1 +1,0 @@
-import{_ as t,o as s,c as n,a as r,b as a,w as c,r as l,e as _}from"./index-5W3pD9Hk.js";const d={},i={class:"page"};function u(f,e){const o=l("router-link");return s(),n("div",i,[e[1]||(e[1]=r("h1",null,"页面不存在",-1)),a(o,{to:"/"},{default:c(()=>[...e[0]||(e[0]=[_("返回首页",-1)])]),_:1})])}const m=t(d,[["render",u]]);export{m as default};

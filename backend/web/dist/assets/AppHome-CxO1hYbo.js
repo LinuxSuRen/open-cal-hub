@@ -1,1 +1,0 @@
-import{d as s,c as t,a as o,o as a}from"./index-5W3pD9Hk.js";const n={class:"page"},c=s({__name:"AppHome",setup(p){return(r,e)=>(a(),t("div",n,[...e[0]||(e[0]=[o("h1",null,"工作台",-1),o("p",null,"建设中…",-1)])]))}});export{c as default};

@@ -1,1 +1,0 @@
-import{d as t,c as s,a as o,o as a}from"./index-5W3pD9Hk.js";const n={class:"page"},c=t({__name:"Forgot",setup(r){return(l,e)=>(a(),s("div",n,[...e[0]||(e[0]=[o("h1",null,"忘记密码",-1),o("p",null,"建设中…",-1)])]))}});export{c as default};

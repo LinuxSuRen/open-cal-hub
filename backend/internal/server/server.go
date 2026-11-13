@@ -3,7 +3,6 @@ package server
 
 import (
 	"io/fs"
-	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -13,9 +12,16 @@ import (
 	"github.com/linuxsuren/open-cal-hub/backend/web"
 )
 
-// New 构建 HTTP 服务。各功能包（auth/user/admin/cal/booking/dav）通过
-// RegisterXxx(mux, a) 挂载自己的路由（见各包 Register 函数），此处只负责公共骨架。
+// New 构建 HTTP 服务。各功能包（auth/user/admin/cal/booking/dav）由
+// cmd/calhub/routes.go 注册到 a.Mux，此处只负责公共骨架与中间件。
 func New(a *app.App) http.Handler {
+	if a.Mux == nil {
+		a.Mux = http.NewServeMux()
+	}
+	if a.Metrics == nil {
+		a.Metrics = httpx.NewMetrics()
+	}
+
 	mux := http.NewServeMux()
 
 	// 健康检查
@@ -32,13 +38,23 @@ func New(a *app.App) http.Handler {
 		_, _ = w.Write([]byte("ok"))
 	})
 
-	// /.well-known/caldav -> /dav/
+	// Prometheus 指标（请求计数/时延直方图，见 internal/httpx/metrics.go）
+	if a.Cfg.Metrics.Enabled {
+		mux.Handle("GET /metrics", a.Metrics.Handler())
+	}
+
+	// /.well-known/caldav -> /dav/（CalDAV 实际路由由 dav 包注册在 a.Mux）
 	mux.Handle("/.well-known/caldav", http.RedirectHandler("/dav/", http.StatusMovedPermanently))
+
+	// API 与 CalDAV：功能包路由（a.Mux）
+	mux.Handle("/api/", a.Mux)
+	mux.Handle("/dav/", a.Mux)
 
 	// 前端静态资源（embed）；SPA fallback 到 index.html
 	static(mux, web.Dist())
 
 	var h http.Handler = mux
+	h = a.Metrics.Middleware(h) // /metrics 自身不计入（见 Middleware 内过滤）
 	h = httpx.Timeout(60*time.Second, h)
 	h = httpx.SecurityHeaders(h)
 	h = httpx.RequestID(a.Log, h)
@@ -69,5 +85,3 @@ func static(mux *http.ServeMux, dist fs.FS) {
 		fileServer.ServeHTTP(w, r)
 	})
 }
-
-var _ = slog.Default // 保留 slog 引用以便后续扩展
