@@ -19,6 +19,7 @@ import (
 	"github.com/linuxsuren/open-cal-hub/backend/internal/config"
 	"github.com/linuxsuren/open-cal-hub/backend/internal/db"
 	"github.com/linuxsuren/open-cal-hub/backend/internal/mail"
+	"github.com/linuxsuren/open-cal-hub/backend/internal/remind"
 	"github.com/linuxsuren/open-cal-hub/backend/internal/server"
 )
 
@@ -73,6 +74,11 @@ func main() {
 	a := &app.App{Cfg: cfg, DB: database, Log: log, Mail: sender, Signer: auth.NewSigner(secret, cfg.Auth.AccessTokenTTL)}
 	registerRoutes(a) // 各功能包在此挂载（auth/user/admin/cal/booking/dav）
 
+	// 提醒 worker 随服务生命周期启停
+	workerCtx, workerCancel := context.WithCancel(context.Background())
+	defer workerCancel()
+	remind.StartWorker(a, workerCtx)
+
 	srv := &http.Server{Addr: cfg.Server.Address, Handler: server.New(a), ReadHeaderTimeout: 10 * time.Second}
 	go func() {
 		log.Info("server_listening", "address", cfg.Server.Address, "base_url", cfg.Server.BaseURL)
@@ -85,6 +91,7 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
+	workerCancel()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_ = srv.Shutdown(ctx)
