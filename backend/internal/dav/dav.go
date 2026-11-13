@@ -23,7 +23,11 @@ var VerifyAppPassword = defaultVerifyAppPassword
 // Register 挂载 /dav/ CalDAV 服务。
 func Register(mux *http.ServeMux, a *app.App) {
 	backend := &Backend{DB: a.DB}
-	handler := &caldav.Handler{Backend: backend, Prefix: Prefix}
+	// 上游 caldav.Handler 按去掉 Prefix 后的路径段数推断资源类型
+	// （1=principal、2=home set、3=日历、4=对象）。本服务路径布局为
+	// /dav/users/{username}/calendars/...，因此 Prefix 需包含 users 段，
+	// 否则所有层级都偏移一位：PROPFIND 集合 404、MKCOL 403。
+	handler := &caldav.Handler{Backend: backend, Prefix: Prefix + "/users"}
 	mux.Handle("/dav/", &server{a: a, backend: backend, inner: handler})
 	mux.Handle("/dav", &server{a: a, backend: backend, inner: handler})
 }
