@@ -24,3 +24,5 @@ e2e/.playwright/
 .DS_Store
 .env
 tmp/
+frontend/*.tsbuildinfo
+frontend/node_modules/.tmp/
