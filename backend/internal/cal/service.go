@@ -303,19 +303,25 @@ func patchSingle(ctx context.Context, q DBTX, master *EventRow, patch *EventPatc
 	if !found {
 		return nil, httpx.E("cal/event_not_found", "事件实例不存在")
 	}
-	var base *EventRow
+	var existing *EventRow
 	rows, err := EventsByUID(ctx, q, master.CalendarID, master.UID)
 	if err != nil {
 		return nil, err
 	}
 	for _, r := range rows {
 		if r.RecurrenceID != nil && r.RecurrenceID.Unix() == rid.Unix() {
-			base = r
+			existing = r
 			break
 		}
 	}
+	base := existing
 	if base == nil {
-		base = master
+		// 新建覆盖行：时间基准锚定在被覆盖的实例（保持系列时长），
+		// 而不是主事件的首次出现——否则仅改标题也会把实例挪回主事件时间。
+		shifted := *master
+		shifted.Start = rid
+		shifted.End = rid.Add(master.End.Sub(master.Start))
+		base = &shifted
 	}
 	in, err := applyToInput(base, patch)
 	if err != nil {
@@ -342,8 +348,8 @@ func patchSingle(ctx context.Context, q DBTX, master *EventRow, patch *EventPatc
 		RRule: "", Reminders: sortedUnique(in.Reminders), Status: in.Status,
 		Sequence: base.Sequence,
 	}
-	if base != master {
-		out.ID = base.ID
+	if existing != nil {
+		out.ID = existing.ID
 		if err := updateEventData(ctx, q, out); err != nil {
 			return nil, err
 		}
