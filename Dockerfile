@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---------- 阶段一：前端构建（node:22 + corepack pnpm） ----------
-FROM node:22-alpine AS frontend
+FROM node:25-alpine AS frontend
 WORKDIR /src
 # 仓库未固定 packageManager 字段，此处激活 pnpm 与维护者本地一致的大版本
 RUN corepack enable && corepack prepare pnpm@12 --activate
