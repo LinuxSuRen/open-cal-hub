@@ -1,0 +1,46 @@
+# Open Cal Hub — systemd 单元示例
+# 安装：
+#   sudo useradd --system --home /var/lib/calhub --shell /usr/sbin/nologin calhub
+#   sudo mkdir -p /var/lib/calhub /etc/calhub
+#   sudo cp deploy/config.example.yaml /etc/calhub/config.yaml && sudoedit /etc/calhub/config.yaml
+#   sudo cp calhub /usr/local/bin/    # 从 Releases 下载对应平台二进制
+#   sudo cp deploy/calhub.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now calhub
+#   curl -fsS http://localhost:8080/healthz
+# 注意：示例配置以 data_dir 默认值 + CALHUB_SERVER_DATA_DIR 环境变量指向 /var/lib/calhub。
+
+[Unit]
+Description=Open Cal Hub server
+Documentation=https://github.com/linuxsuren/open-cal-hub
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=calhub
+Group=calhub
+ExecStart=/usr/local/bin/calhub -config /etc/calhub/config.yaml
+Environment=CALHUB_SERVER_DATA_DIR=/var/lib/calhub
+Restart=on-failure
+RestartSec=5s
+
+# 停机与超时
+TimeoutStopSec=15s
+LimitNOFILE=65535
+
+# 沙箱加固
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictNamespaces=true
+ReadWritePaths=/var/lib/calhub
+
+[Install]
+WantedBy=multi-user.target

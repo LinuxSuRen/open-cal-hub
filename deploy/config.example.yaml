@@ -1,0 +1,84 @@
+# Open Cal Hub 配置示例（逐项注释，与 backend/internal/config/config.go 一一对应）
+# 优先级：默认值 < 本文件 < 环境变量（CALHUB_<SECTION>_<KEY>，如 CALHUB_SERVER_ADDRESS）。
+# 启动：./calhub -config config.example.yaml
+# 完整说明见 docs/configuration.md。
+
+server:
+  # 监听地址。默认 ":8080"。环境变量 CALHUB_SERVER_ADDRESS。
+  address: ":8080"
+
+  # 对外访问的基础 URL：邮件里的验证/重置链接、分享与预约链接都基于它生成，末尾不带斜杠。
+  # 生产环境必改，例如 "https://cal.example.com"。默认 "http://localhost:8080"。
+  # 环境变量 CALHUB_SERVER_BASE_URL。
+  base_url: "http://localhost:8080"
+
+  # 数据目录：SQLite 数据库与自动生成的 JWT 密钥（secret.key）所在位置。
+  # 默认 "data"（相对工作目录）。环境变量 CALHUB_SERVER_DATA_DIR。
+  data_dir: "data"
+
+db:
+  # SQLite 数据库文件路径。留空时默认为 <data_dir>/calhub.db。
+  # 环境变量 CALHUB_DB_PATH。
+  path: ""    # 例：/var/lib/calhub/calhub.db
+
+auth:
+  # JWT 签名密钥。留空则首次启动自动生成 32 字节随机密钥并持久化到
+  # <data_dir>/secret.key（权限 0600）。多副本部署或容器需固定身份时请显式设置。
+  # 环境变量 CALHUB_AUTH_JWT_SECRET。
+  jwt_secret: ""
+
+  # 访问令牌（access token）有效期，Go duration 格式。默认 15m。
+  # 环境变量 CALHUB_AUTH_ACCESS_TTL。
+  access_ttl: 15m
+
+  # 刷新令牌有效期（每次刷新会轮换）。默认 720h（30 天）。
+  # 环境变量 CALHUB_AUTH_REFRESH_TTL。
+  refresh_ttl: 720h
+
+  # 首个注册用户自动成为管理员。默认 true；对外开站可关闭后手动提权。
+  # 环境变量 CALHUB_AUTH_FIRST_USER_ADMIN。
+  first_user_admin: true
+
+  # 注册后必须完成邮箱验证才能登录（需配合 mail.mode=smtp 或在管理台取链接）。
+  # 默认 true。环境变量 CALHUB_AUTH_REQUIRE_EMAIL_VALIDATION。
+  require_email_validation: true
+
+mail:
+  # 邮件投递模式：
+  #   outbox — 只写入数据库，不外发；管理台「邮件」页可查看，适合本地开发与试用
+  #   smtp   — 真实发送
+  # 默认 outbox。环境变量 CALHUB_MAIL_MODE。
+  mode: outbox
+
+  # 发件人地址（SMTP MAIL FROM / From 头）。默认 "calhub@localhost"。
+  # 环境变量 CALHUB_MAIL_FROM。
+  from: "calhub@example.com"
+
+  # SMTP 服务器主机。mode=outbox 时可留空。环境变量 CALHUB_MAIL_HOST。
+  host: "smtp.example.com"
+
+  # SMTP 端口。常用：587（STARTTLS）/ 465（TLS）/ 25（明文，配合 tls: none）。
+  # 环境变量 CALHUB_MAIL_PORT。
+  port: 587
+
+  # SMTP 认证用户名。环境变量 CALHUB_MAIL_USERNAME。
+  username: "calhub@example.com"
+
+  # SMTP 认证密码。建议通过环境变量 CALHUB_MAIL_PASSWORD 注入，不要提交到仓库。
+  password: "change-me"
+
+  # TLS 方式：starttls | tls | none。默认 starttls。环境变量 CALHUB_MAIL_TLS。
+  tls: starttls
+
+log:
+  # 日志级别：debug | info | warn | error。默认 info。环境变量 CALHUB_LOG_LEVEL。
+  level: info
+
+  # 日志格式：text | json。容器/采集环境建议 json。默认 text。
+  # 环境变量 CALHUB_LOG_FORMAT。
+  format: text
+
+metrics:
+  # Prometheus 指标端点（/metrics）开关。默认 true。
+  # 注意：当前版本该项仅支持 YAML 配置，无对应环境变量。
+  enabled: true

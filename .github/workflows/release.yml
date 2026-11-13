@@ -1,0 +1,226 @@
+name: Release
+
+# 打 tag（v*）触发：多平台二进制 + 多架构容器镜像 + GitHub Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+# 仓库全局保持最小只读权限；需要写权限的 job 单独提权
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  frontend:
+    name: 构建前端
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v5
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 启用 pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@12 --activate
+          pnpm --version
+
+      - name: 安装依赖
+        run: pnpm --dir frontend install --frozen-lockfile
+
+      - name: 构建
+        run: pnpm --dir frontend run build
+
+      - name: 上传前端产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 3
+          if-no-files-found: error
+
+  binaries:
+    name: 二进制 ${{ matrix.goos }}/${{ matrix.goarch }}
+    needs: frontend
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v5
+
+      - name: 安装 Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: 下载前端产物（embed 依赖）
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: backend/web/dist
+
+      - name: 计算版本号
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: 校验版本符号可注入
+        run: |
+          grep -Eq '^var Version ' backend/internal/version/version.go || {
+            echo "::error::backend/internal/version/version.go 中 Version 必须声明为 var（const 无法通过 -ldflags -X 注入版本）"
+            exit 1
+          }
+
+      - name: 交叉编译
+        env:
+          CGO_ENABLED: 0
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          bin=calhub
+          if [ "${GOOS}" = "windows" ]; then bin=calhub.exe; fi
+          cd backend
+          go build -trimpath \
+            -ldflags "-s -w -X github.com/linuxsuren/open-cal-hub/backend/internal/version.Version=${VERSION}" \
+            -o "../build/${bin}" ./cmd/calhub
+
+      - name: 打包（二进制 + config.example.yaml + LICENSE + README）
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          bin=calhub
+          if [ "${GOOS}" = "windows" ]; then bin=calhub.exe; fi
+          name="calhub_${VERSION}_${GOOS}_${GOARCH}"
+          mkdir -p "pkg/${name}"
+          cp "build/${bin}" "deploy/config.example.yaml" LICENSE README.md "pkg/${name}/"
+          cd pkg
+          if [ "${GOOS}" = "windows" ]; then
+            zip -r "../${name}.zip" "${name}"
+          else
+            tar -czf "../${name}.tar.gz" "${name}"
+          fi
+
+      - name: 上传发布物
+        uses: actions/upload-artifact@v4
+        with:
+          name: calhub_${{ matrix.goos }}_${{ matrix.goarch }}
+          path: |
+            calhub_*_*.tar.gz
+            calhub_*_*.zip
+          retention-days: 7
+          if-no-files-found: error
+
+  docker:
+    name: 容器镜像 linux/amd64+arm64
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v5
+
+      - name: 计算版本号
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: 安装 QEMU（arm64 交叉构建）
+        uses: docker/setup-qemu-action@v3
+
+      - name: 安装 buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 登录 ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 构建并推送多架构镜像
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            VERSION=${{ steps.ver.outputs.version }}
+          tags: |
+            ghcr.io/linuxsuren/open-cal-hub:${{ steps.ver.outputs.version }}
+            ghcr.io/linuxsuren/open-cal-hub:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  release:
+    name: 创建 GitHub Release
+    needs: [binaries, docker]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v5
+
+      - name: 下载全部发布物
+        uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+
+      - name: 生成 sha256 校验和
+        working-directory: assets
+        run: |
+          sha256sum calhub_* > checksums.txt
+          cat checksums.txt
+
+      - name: 生成 Release 说明（CHANGELOG 摘要）
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          awk -v ver="$version" '
+            $0 ~ "^## \\[" ver "\\]" { found=1; next }
+            /^## \[/ { found=0 }
+            found { print }
+          ' CHANGELOG.md > release_body.md
+          if [ ! -s release_body.md ]; then
+            echo "Open Cal Hub v${version} 发布，变更详见 CHANGELOG.md。" > release_body.md
+          else
+            printf '\n---\n完整变更与历史版本见 [CHANGELOG.md](https://github.com/linuxsuren/open-cal-hub/blob/main/CHANGELOG.md)。\n' >> release_body.md
+          fi
+          echo '--- release_body.md ---'
+          cat release_body.md
+
+      - name: 创建 Release 并附产物
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            assets/calhub_*
+            assets/checksums.txt
+          body_path: release_body.md
+          generate_release_notes: true

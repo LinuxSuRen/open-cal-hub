@@ -1,0 +1,51 @@
+# Open Cal Hub — docker compose 部署示例
+# 用法：
+#   1. （可选）在同目录放置 .env 覆盖默认值（cp 后编辑）：
+#        CALHUB_SERVER_BASE_URL=https://cal.example.com
+#        CALHUB_MAIL_MODE=smtp
+#        CALHUB_MAIL_HOST=smtp.example.com
+#        CALHUB_MAIL_USERNAME=calhub@example.com
+#        CALHUB_MAIL_PASSWORD=******
+#   2. docker compose up -d
+#   3. curl -fsS http://localhost:8080/healthz
+# 数据持久化在 ./data（SQLite + secret.key），升级前备份该目录即可。
+
+services:
+  calhub:
+    image: ghcr.io/linuxsuren/open-cal-hub:1.0.0
+    container_name: calhub
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+      # 可选：YAML 配置文件（对应启动参数 -config）；环境变量优先级高于 YAML
+      # - ./config.yaml:/etc/calhub/config.yaml:ro
+    environment:
+      # 对外访问地址：邮件与分享链接基于它生成，生产环境请改为实际域名
+      CALHUB_SERVER_BASE_URL: ${CALHUB_SERVER_BASE_URL:-http://localhost:8080}
+      # JWT 密钥：留空则自动生成并持久化到 /data/secret.key；如需外部管理可在此注入
+      CALHUB_AUTH_JWT_SECRET: ${CALHUB_AUTH_JWT_SECRET:-}
+      CALHUB_AUTH_REQUIRE_EMAIL_VALIDATION: ${CALHUB_AUTH_REQUIRE_EMAIL_VALIDATION:-true}
+      # 邮件：outbox 仅落库（管理台可查看，适合试用）；生产改 smtp 并补齐下方参数
+      CALHUB_MAIL_MODE: ${CALHUB_MAIL_MODE:-outbox}
+      CALHUB_MAIL_FROM: ${CALHUB_MAIL_FROM:-calhub@example.com}
+      CALHUB_MAIL_HOST: ${CALHUB_MAIL_HOST:-}
+      CALHUB_MAIL_PORT: ${CALHUB_MAIL_PORT:-587}
+      CALHUB_MAIL_USERNAME: ${CALHUB_MAIL_USERNAME:-}
+      CALHUB_MAIL_PASSWORD: ${CALHUB_MAIL_PASSWORD:-}
+      CALHUB_MAIL_TLS: ${CALHUB_MAIL_TLS:-starttls}
+      # 日志：容器环境建议 json
+      CALHUB_LOG_FORMAT: ${CALHUB_LOG_FORMAT:-json}
+      CALHUB_LOG_LEVEL: ${CALHUB_LOG_LEVEL:-info}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

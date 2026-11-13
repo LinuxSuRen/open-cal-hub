@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 使用问题与讨论
+    url: https://github.com/linuxsuren/open-cal-hub/discussions
+    about: 部署、配置与使用类问题请先到 Discussions 提问或检索。
+  - name: 安全漏洞
+    url: https://github.com/linuxsuren/open-cal-hub/security/advisories
+    about: 安全问题请勿开公开 issue，使用私有漏洞报告通道。
