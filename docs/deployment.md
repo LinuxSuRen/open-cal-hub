@@ -116,7 +116,8 @@ CalDAV 相关注意：
 1. **方法透传**：nginx 默认转发任意 HTTP 方法（`PROPFIND`、`REPORT`、`MKCOL` 等），无需额外模块；**切勿**用 `limit_except` 收窄方法集，否则 CalDAV 客户端会收到 405；
 2. **发现入口**：`/.well-known/caldav` 由后端 301 到 `/dav/`，代理层无需特判；
 3. **请求体**：整册同步与导入可能携带较大 body，`client_max_body_size` 不宜过小；
-4. **不要缓冲打乱长连接**：保持 `proxy_http_version 1.1`；如需 WebSocket 不必特殊配置（本项目不使用）。
+4. **不要缓冲打乱长连接**：保持 `proxy_http_version 1.1`；如需 WebSocket 不必特殊配置（本项目不使用）；
+5. **MKCOL 创建日历的路径**：通过 CalDAV `MKCOL` 创建的日历以服务端生成的 `{calendar_id}` 作为资源路径段（如 `/dav/users/{username}/calendars/42/`），客户端请求中的路径段仅作为日历名称建议——下次 `PROPFIND` 以服务端路径为准。
 
 TLS 证书推荐 [certbot](https://certbot.eff.org/) 自动续期：`sudo certbot --nginx -d cal.example.com`。配置完成后记得把 `CALHUB_SERVER_BASE_URL`（或 `server.base_url`）改为 `https://cal.example.com`。
 
