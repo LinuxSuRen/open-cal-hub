@@ -25,10 +25,10 @@ export const router = createRouter({
     { path: '/admin/:section', component: () => import('./views/admin/AdminHome.vue'), meta: { admin: true } },
 
     // 公开页
-    { path: '/u/:username', component: () => import('./views/pub/BookingProfile.vue') },
-    { path: '/u/:username/:slug', component: () => import('./views/pub/BookingPage.vue') },
-    { path: '/s/:token', component: () => import('./views/pub/ShareView.vue') },
-    { path: '/b/:token', component: () => import('./views/pub/BookingManage.vue') },
+    { path: '/u/:username', component: () => import('./views/pub/BookingProfile.vue'), meta: { public: true } },
+    { path: '/u/:username/:slug', component: () => import('./views/pub/BookingPage.vue'), meta: { public: true } },
+    { path: '/s/:token', component: () => import('./views/pub/ShareView.vue'), meta: { public: true } },
+    { path: '/b/:token', component: () => import('./views/pub/BookingManage.vue'), meta: { public: true } },
 
     { path: '/', redirect: '/app' },
     { path: '/:pathMatch(.*)*', component: () => import('./views/NotFound.vue') },

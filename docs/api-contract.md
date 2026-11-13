@@ -146,7 +146,7 @@ GET /availability-sets → `{"data":[{"id":1,"name":"工作时间","timezone":"A
 POST /availability-sets `{name, timezone, is_default?, rules: [...], dates?: [...]}` → 201；PATCH /availability-sets/{id}（rules/dates 整体替换）→ 更新后对象；DELETE /availability-sets/{id} → null（被引用时 → common/validation_failed）。注册时自动创建"工作时间"默认集（周一至周五 09:00-17:00）。
 
 ### 预约类型
-GET /event-types → `{"data": [EventTypeFull...]}`；POST /event-types（字段同公开视图 + `active`, `availability_id`, `calendar_id`；slug `^[a-z0-9-]{1,64}$` 每用户唯一）→ 201；PATCH /event-types/{id}；DELETE /event-type/{id} → null（已有预约保留、公开页 404）
+GET /event-types → `{"data": [EventTypeFull...]}`；POST /event-types（字段同公开视图 + `active`, `availability_id`, `calendar_id`；slug `^[a-z0-9-]{1,64}$` 每用户唯一）→ 201；PATCH /event-types/{id}；DELETE /event-types/{id} → null（已有预约保留、公开页 404）
 **EventTypeFull**：`{id, slug, name, description, duration_minutes, location_type, location_value, color, buffer_before, buffer_after, slot_interval, min_notice_minutes, range_type, range_days, start_date, end_date, availability_id, calendar_id, active, booking_url: "/u/rick/intro", created_at, updated_at}`
 
 ### 外部日历源（忙碌检测）
