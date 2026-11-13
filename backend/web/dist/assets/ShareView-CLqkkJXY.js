@@ -1,0 +1,1 @@
+import{d as o,c as s,a,o as t}from"./index-5W3pD9Hk.js";const n={class:"page"},c=o({__name:"ShareView",setup(r){return(l,e)=>(t(),s("div",n,[...e[0]||(e[0]=[a("h1",null,"日历分享",-1),a("p",null,"建设中…",-1)])]))}});export{c as default};

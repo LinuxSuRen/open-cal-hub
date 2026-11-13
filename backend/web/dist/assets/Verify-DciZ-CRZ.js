@@ -1,0 +1,1 @@
+import{d as s,c as t,a as o,o as a}from"./index-5W3pD9Hk.js";const n={class:"page"},c=s({__name:"Verify",setup(r){return(l,e)=>(a(),t("div",n,[...e[0]||(e[0]=[o("h1",null,"邮箱验证",-1),o("p",null,"建设中…",-1)])]))}});export{c as default};

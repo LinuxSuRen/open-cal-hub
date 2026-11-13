@@ -1,0 +1,23 @@
+// 核心文案（owner: lead）
+export const messages = {
+  'app.name': { 'zh-CN': 'CalHub', en: 'CalHub' },
+  'app.tagline': { 'zh-CN': '自托管的开源日历与预约平台', en: 'Self-hosted open-source calendar & scheduling' },
+  'nav.today': { 'zh-CN': '工作台', en: 'Home' },
+  'nav.calendar': { 'zh-CN': '日历', en: 'Calendar' },
+  'nav.calendars': { 'zh-CN': '日历管理', en: 'Calendars' },
+  'nav.booking': { 'zh-CN': '预约设置', en: 'Scheduling' },
+  'nav.bookings': { 'zh-CN': '我的预约', en: 'Bookings' },
+  'nav.settings': { 'zh-CN': '设置', en: 'Settings' },
+  'nav.admin': { 'zh-CN': '管理台', en: 'Admin' },
+  'nav.logout': { 'zh-CN': '退出登录', en: 'Sign out' },
+  'action.save': { 'zh-CN': '保存', en: 'Save' },
+  'action.cancel': { 'zh-CN': '取消', en: 'Cancel' },
+  'action.delete': { 'zh-CN': '删除', en: 'Delete' },
+  'action.create': { 'zh-CN': '新建', en: 'Create' },
+  'action.confirm': { 'zh-CN': '确认', en: 'Confirm' },
+  'action.edit': { 'zh-CN': '编辑', en: 'Edit' },
+  'state.loading': { 'zh-CN': '加载中…', en: 'Loading…' },
+  'state.empty': { 'zh-CN': '暂无数据', en: 'No data' },
+  'error.network': { 'zh-CN': '无法连接后端服务，请确认服务已启动', en: 'Cannot reach the server' },
+  'error.timeout': { 'zh-CN': '请求超时，请检查网络后重试', en: 'Request timed out' },
+} as const

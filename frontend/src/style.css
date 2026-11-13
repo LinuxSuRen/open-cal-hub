@@ -1,0 +1,71 @@
+/* CalHub 设计令牌（产品 UI 手写样式基座；管理台 Element Plus 场景按需覆盖） */
+:root {
+  /* 颜色 */
+  --color-bg-base: #f6f7f9;
+  --color-bg-panel: #ffffff;
+  --color-bg-elevated: #ffffff;
+  --color-bg-sunken: #eef0f4;
+  --color-border-subtle: #e3e6eb;
+  --color-text-dim: #9aa1ac;
+  --color-text-secondary: #6b7280;
+  --color-text-primary: #23272f;
+  --color-text-bright: #111418;
+  --color-accent: #4f6ef7;
+  --color-accent-hover: #3d5bf5;
+  --color-accent-soft: #e8edfe;
+  --color-success: #1f9d61;
+  --color-success-soft: #e5f6ee;
+  --color-warning: #b97e0d;
+  --color-warning-soft: #fbf1dd;
+  --color-danger: #d5484f;
+  --color-danger-soft: #fdebec;
+
+  /* 间距（4px 基准） */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+  --space-12: 48px; --space-16: 64px;
+
+  /* 字体 */
+  --font-body: 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* 圆角与阴影 */
+  --radius-s: 6px; --radius-m: 10px; --radius-l: 16px; --radius-full: 999px;
+  --shadow-panel: 0 1px 2px rgba(18, 22, 31, 0.05), 0 4px 16px rgba(18, 22, 31, 0.06);
+  --shadow-pop: 0 4px 12px rgba(18, 22, 31, 0.12), 0 12px 32px rgba(18, 22, 31, 0.10);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-base);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--color-accent); text-decoration: none; }
+a:hover { color: var(--color-accent-hover); }
+
+/* 通用表单控件基调（产品页不依赖组件库时使用） */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: 8px 16px; border-radius: var(--radius-s);
+  border: 1px solid var(--color-border-subtle); background: var(--color-bg-panel);
+  color: var(--color-text-primary); font-size: 14px; cursor: pointer;
+}
+.btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.btn-primary { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+.btn-primary:hover { background: var(--color-accent-hover); border-color: var(--color-accent-hover); color: #fff; }
+.btn-danger { color: var(--color-danger); border-color: var(--color-danger); }
+.input {
+  width: 100%; padding: 8px 12px; border-radius: var(--radius-s);
+  border: 1px solid var(--color-border-subtle); background: var(--color-bg-panel);
+  font-size: 14px; color: var(--color-text-primary);
+}
+.input:focus { outline: 2px solid var(--color-accent-soft); border-color: var(--color-accent); }
+
+/* 管理台/内容页骨架 */
+.page { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+.block { margin-top: 16px; }

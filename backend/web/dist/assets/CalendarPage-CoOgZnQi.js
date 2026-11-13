@@ -1,0 +1,1 @@
+import{d as n,c as o,a,o as s}from"./index-5W3pD9Hk.js";const t={class:"page"},c=n({__name:"CalendarPage",setup(r){return(l,e)=>(s(),o("div",t,[...e[0]||(e[0]=[a("h1",null,"日历",-1),a("p",null,"建设中…",-1)])]))}});export{c as default};

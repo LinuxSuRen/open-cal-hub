@@ -1,0 +1,26 @@
+# backend
+backend/bin/
+backend/calhub
+backend/*.db
+backend/*.db-*
+# 注意：backend/web/dist 是 embed 目录，占位文件必须入库，勿忽略
+*.test
+*.out
+coverage.*
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.local
+
+# e2e
+e2e/node_modules/
+e2e/test-results/
+e2e/playwright-report/
+e2e/.playwright/
+
+# misc
+.DS_Store
+.env
+tmp/
