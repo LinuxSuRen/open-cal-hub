@@ -49,8 +49,10 @@ export const calApi = {
   create: (p: { name: string; color?: string; description?: string; timezone?: string }) => post<Calendar>('/api/v1/calendars', p),
   update: (id: number, p: Partial<{ name: string; color: string; description: string; timezone: string }>) => patch<Calendar>(`/api/v1/calendars/${id}`, p),
   remove: (id: number) => del<null>(`/api/v1/calendars/${id}`),
-  events: (calId: number, from: string, to: string) =>
-    get<EventInstance[]>(`/api/v1/calendars/${calId}/events?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
+  events: (calId: number, from: string, to: string, includeCancelled = false) => {
+    const q = new URLSearchParams({ from, to, include_cancelled: String(includeCancelled) })
+    return get<EventInstance[]>(`/api/v1/calendars/${calId}/events?${q.toString()}`)
+  },
   createEvent: (calId: number, p: EventInput) => post<EventInstance>(`/api/v1/calendars/${calId}/events`, p),
   updateEvent: (eventId: number, p: Partial<EventInput>, scope: 'single' | 'all' = 'all') =>
     patch<EventInstance>(`/api/v1/events/${eventId}?scope=${scope}`, p),

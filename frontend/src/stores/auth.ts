@@ -2,7 +2,11 @@
 // access token 只存内存；刷新依赖 httpOnly Cookie；页面刷新时先 tryRefresh 再拉 me。
 import { reactive } from 'vue'
 import { setAccessToken, hasAccessToken, tryRefresh, authApi, type User } from '../api'
-import { router } from '../router'
+import { setLocale, type Locale } from '../i18n'
+
+function applyLocale(user: User | null) {
+  setLocale(user?.locale === 'en' ? 'en' : ('zh-CN' as Locale))
+}
 
 export const authState = reactive<{
   user: User | null
@@ -24,6 +28,7 @@ export async function bootAuth(): Promise<void> {
       authState.user = null
     }
   }
+  applyLocale(authState.user)
   authState.booted = true
 }
 
@@ -33,6 +38,7 @@ export async function login(email: string, password: string): Promise<User> {
     const res = await authApi.login(email, password)
     setAccessToken(res.access_token)
     authState.user = res.user
+    applyLocale(authState.user)
     authState.booted = true
     return res.user
   } finally {
@@ -44,6 +50,8 @@ export async function logout(): Promise<void> {
   try { await authApi.logout() } catch { /* 忽略登出失败 */ }
   setAccessToken('')
   authState.user = null
+  // 动态引入避免模块级依赖 router（测试环境无 window）
+  const { router } = await import('../router')
   await router.push('/login')
 }
 

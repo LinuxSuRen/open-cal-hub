@@ -23,7 +23,7 @@ export function hasAccessToken() { return accessToken !== '' }
 export interface Envelope<T> { data: T; page?: number; page_size?: number; total?: number }
 export interface ListResult<T> { data: T[]; page: number; page_size: number; total: number }
 
-async function request<T>(method: string, path: string, body?: unknown, opts?: { retryRefresh?: boolean }): Promise<T> {
+async function request<T>(method: string, path: string, body?: unknown, opts?: { retryRefresh?: boolean; keepEnvelope?: boolean }): Promise<T> {
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS)
   try {
@@ -38,7 +38,7 @@ async function request<T>(method: string, path: string, body?: unknown, opts?: {
     })
     if (res.status === 401 && opts?.retryRefresh !== false && accessToken) {
       const ok = await tryRefresh()
-      if (ok) return request<T>(method, path, body, { retryRefresh: false })
+      if (ok) return request<T>(method, path, body, { retryRefresh: false, keepEnvelope: opts?.keepEnvelope })
     }
     if (!res.ok) {
       let code = 'common/internal'
@@ -54,11 +54,17 @@ async function request<T>(method: string, path: string, body?: unknown, opts?: {
     }
     const text = await res.text()
     if (!text) return null as T
+    let parsed: unknown
     try {
-      return JSON.parse(text) as T
+      parsed = JSON.parse(text)
     } catch {
       return null as T
     }
+    // 成功包络 {"data": ...}：默认自动解包；getList 需要分页字段时保留整包
+    if (!opts?.keepEnvelope && parsed !== null && typeof parsed === 'object' && 'data' in (parsed as Record<string, unknown>)) {
+      return (parsed as { data: T }).data
+    }
+    return parsed as T
   } catch (err) {
     if (err instanceof ApiError) throw err
     if (err instanceof DOMException && err.name === 'AbortError') {
@@ -77,7 +83,7 @@ export const put = <T,>(path: string, body?: unknown): Promise<T> => request<T>(
 export const del = <T,>(path: string): Promise<T> => request<T>('DELETE', path)
 
 export async function getList<T>(path: string): Promise<ListResult<T>> {
-  const env = await request<Envelope<T> | null>('GET', path)
+  const env = await request<Envelope<T> | null>('GET', path, undefined, { keepEnvelope: true })
   return { data: (env?.data ?? []) as T[], page: env?.page ?? 1, page_size: env?.page_size ?? 20, total: env?.total ?? 0 }
 }
 

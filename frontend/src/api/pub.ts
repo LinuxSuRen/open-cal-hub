@@ -36,6 +36,19 @@ export interface PublicShare {
   timezone: string
 }
 
+export interface GuestBookingManage {
+  event_type: { name: string; slug?: string; duration_minutes: number }
+  host_username?: string // 契约 §4：改期页复用槽位接口
+  host_display_name: string
+  start: string
+  end: string
+  status: string
+  guest_name: string
+  guest_note: string
+  timezone: string
+}
+
+/** 预约/改期的返回视图（契约 BookingGuestView）。 */
 export interface GuestBookingView {
   id: number
   event_type_name: string
@@ -44,6 +57,11 @@ export interface GuestBookingView {
   end: string
   status: string
   created_at: string
+}
+
+/** ICS 订阅直链（浏览器直接下载，不走 JSON 封装）。 */
+export function shareIcsUrl(token: string): string {
+  return `/api/v1/pub/share/${encodeURIComponent(token)}/ics`
 }
 
 export const pubApi = {
@@ -56,7 +74,7 @@ export const pubApi = {
   share: (token: string) => get<PublicShare>(`/api/v1/pub/share/${encodeURIComponent(token)}`),
   shareEvents: (token: string, from: string, to: string) =>
     get<EventInstance[]>(`/api/v1/pub/share/${encodeURIComponent(token)}/events?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
-  bookingByToken: (token: string) => get<{ event_type: { name: string; duration_minutes: number }; host_display_name: string; start: string; end: string; status: string; guest_name: string; guest_note: string; timezone: string }>(`/api/v1/pub/b/${encodeURIComponent(token)}`),
+  bookingByToken: (token: string) => get<GuestBookingManage>(`/api/v1/pub/b/${encodeURIComponent(token)}`),
   cancelByToken: (token: string, reason?: string) => post<null>(`/api/v1/pub/b/${encodeURIComponent(token)}/cancel`, { reason }),
   rescheduleByToken: (token: string, start: string) => post<GuestBookingView>(`/api/v1/pub/b/${encodeURIComponent(token)}/reschedule`, { start }),
 }
