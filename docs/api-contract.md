@@ -97,13 +97,15 @@ DELETE /me/app-passwords/{id} → null
 ### POST /calendars `{name, color?, description?, timezone?}` → 201 Calendar；PATCH /calendars/{id}（owner only）→ Calendar；DELETE /calendars/{id} → null（软删除；不允许删除默认日历 → common/validation_failed）。首个日历自动设为默认。
 
 ### 事件实例（展开后）
-`{"id": 12, "uid": "abc", "calendar_id": 1, "summary": "", "location": "", "description": "", "start": "...Z", "end": "...Z", "all_day": false, "tz": "Asia/Shanghai", "status": "confirmed", "rrule": "FREQ=WEEKLY;BYDAY=MO", "recurring": true, "recurrence_id": null, "reminders": [10], "master_id": 12}`。编辑/删除单实例时传 `scope=single` 生成 override；`scope=all` 操作整个系列。取消状态的事件 status=cancelled（默认查询返回全部，`?include_cancelled=false` 可过滤）。
+`{"id": 12, "uid": "abc", "calendar_id": 1, "summary": "", "location": "", "description": "", "start": "...Z", "end": "...Z", "all_day": false, "tz": "Asia/Shanghai", "status": "confirmed", "rrule": "FREQ=WEEKLY;BYDAY=MO", "recurring": true, "recurrence_id": "2026-11-16T01:00:00Z", "reminders": [10], "master_id": 12}`。`recurrence_id` 为实例时刻（重复系列的合成实例同样返回该值，前端据此做 `scope=single` 编辑/删除定位）。编辑/删除单实例时传 `scope=single` 生成 override；`scope=all` 操作整个系列。取消状态的事件 status=cancelled（默认查询返回全部，`?include_cancelled=false` 可过滤）。
 
 ### GET /calendars/{id}/events?from&to&include_cancelled
 跨度 ≤ 62 天 → `{"data": [EventInstance...]}`（重复事件已展开；override 生效；EXDATE 生效）
 
 ### POST /calendars/{id}/events
-`{summary, start, end, all_day?, tz?, location?, description?, status?, reminders?: [10], rrule?: {freq: "DAILY|WEEKLY|MONTHLY|YEARLY", interval?: 1, byday?: ["MO"], until?: "...Z", count?: 10}}` → 201 EventInstance(master)。校验：end>start；all_day 时 start/end 为日期（返回值对应 UTC 零点）。
+`{summary, start, end, all_day?, tz?, location?, description?, status?, reminders?: [10], rrule?: {freq: "DAILY|WEEKLY|MONTHLY|YEARLY", interval?: 1, byday?: ["MO"], until?: "...Z", count?: 10}}` → 201 EventInstance(master)。校验：end>start；all_day 时 start/end 为日期，按 iCalendar 排他结束语义存储与返回（`start=当日 00:00Z`、`end=结束次日 00:00Z`；end 省略或不晚于 start 时自动取 start 次日）。`until` 接受 RFC3339（`2026-12-31T23:59:59Z`）与 iCalendar 紧凑格式（`20261231T235959Z`）两种写法，输出统一为紧凑格式。
+
+权限语义：事件写操作（POST/PATCH/DELETE）要求 owner/editor，viewer 越权写返回 `403 common/forbidden`；无任何成员关系的用户读取返回 `404 cal/calendar_not_found`（不泄漏日历存在性）。
 
 ### PATCH /events/{id}?scope=all `{...同上部分字段}` → EventInstance
 ### DELETE /events/{id}?scope=single|all → null
@@ -170,7 +172,7 @@ GET /admin/settings → `{"data":{"site_name":"CalHub","registration_mode":"open
 PUT /admin/settings `{...}` → 更新后对象（未知键 → admin/invalid_setting）
 GET /admin/emails?page&page_size → outbox（含正文，便于联调查验邮件）；
 POST /admin/emails/{id}/retry → null
-GET /admin/invite-codes → `{"data":[{"code":"...","created_at":"","expires_at":"","used_at":""}]}`；POST /admin/invite-codes `{count?: 1, expires_in_hours?: 168}` → 201 codes；DELETE /admin/invite-codes/{code} → null
+GET /admin/invite-codes → `{"data":[{"code":"...","created_at":"","expires_at":"","used_at":""}]}`（裸数组）；POST /admin/invite-codes `{count?: 1, expires_in_hours?: 168}` → 201 `{"data":{"codes":["7XKQ-4MHB-9WZT", ...]}}`（对象包裹，便于后续扩展字段）；DELETE /admin/invite-codes/{code} → null
 
 ## 7. CalDAV（/dav/，非 REST）
 

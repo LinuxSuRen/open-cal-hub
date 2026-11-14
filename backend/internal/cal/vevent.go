@@ -428,9 +428,12 @@ func CanonicalRRule(in *RRuleInput) (string, error) {
 		}
 	}
 	if in.Until != "" {
-		u, err := parseTime(in.Until)
+		// 兼容 RFC3339（带连字符，前端提交格式）与 iCalendar 紧凑格式（20060102T150405Z）
+		u, err := time.Parse(time.RFC3339, in.Until)
 		if err != nil {
-			return "", fmt.Errorf("until must be RFC3339")
+			if u, err = time.Parse("20060102T150405Z", in.Until); err != nil {
+				return "", fmt.Errorf("until must be RFC3339")
+			}
 		}
 		opt.Until = u.UTC()
 	}
