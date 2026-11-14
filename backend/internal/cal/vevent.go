@@ -318,14 +318,17 @@ func DeriveEvent(ev *ics.Component, fallbackTZ string) (*Derived, error) {
 	return d, nil
 }
 
-// propTime 解析属性值为时间：支持 DATE、本地时间+TZID、UTC 时间。
+// propTime 解析属性值为时间：支持 DATE、本地时间+TZID（15 位基本格式）、
+// UTC 基本格式（16 位结尾 Z，go-ical SetDateTime 的 UTC 编码）与 RFC3339。
 func propTime(p *ics.Prop, fallbackTZ string) (time.Time, error) {
 	value := p.Value
 	vt := p.ValueType()
 	switch {
 	case vt == ics.ValueDate || len(value) == 8:
 		return time.ParseInLocation("20060102", value, time.UTC)
-	case len(value) == 16:
+	case len(value) == 16 && strings.HasSuffix(value, "Z"):
+		return time.ParseInLocation("20060102T150405Z", value, time.UTC)
+	case len(value) == 15:
 		loc, err := tzLocation(p.Params.Get(ics.PropTimezoneID), fallbackTZ)
 		if err != nil {
 			return time.Time{}, err
