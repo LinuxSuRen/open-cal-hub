@@ -87,6 +87,12 @@ GET /me/app-passwords → `{"data": [{"id":1,"label":"iPhone","created_at":"","l
 POST /me/app-passwords `{label}` → 201 `{"data": {"id":1, "password": "仅此一次返回"}}`
 DELETE /me/app-passwords/{id} → null
 
+### OAuth 登录（GitHub / Google，按服务端配置启用）
+- `GET /auth/oauth/{provider}/authorize?redirect_to=` → 302 到提供方授权页（携带 15 分钟 state，HttpOnly Cookie 双提交）。provider 未配置 → 404
+- `GET /auth/oauth/{provider}/callback?code&state` → 200 `{access_token, expires_in, user}`（同登录形态，refresh 走 Cookie）；state 缺失/不一致/过期 → 400 auth/invalid_token
+- 身份规则：同一 `(provider, provider_uid)` 重复登录幂等；未绑定时按已验证邮箱关联本地账号（补邮箱验证并绑定）；无匹配账号自动注册（视为已验证；`registration_mode=invite` 时 → 403 auth/invite_required）
+- 绑定管理（登录态）：`GET /me/oauth` → `{"data":[{"provider":"","provider_uid":"","email_at_link":"","created_at":""}]}`；`DELETE /me/oauth/{provider}` → null
+
 **User 对象**：`{"id":1, "email":"a@b.c", "username":"rick", "display_name":"Rick", "bio":"", "timezone":"Asia/Shanghai", "locale":"zh-CN", "role":"user", "status":"active", "email_verified": true, "created_at":"", "last_login_at":""}`
 
 ## 3. 日历与事件
