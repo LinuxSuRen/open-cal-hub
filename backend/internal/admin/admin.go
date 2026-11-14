@@ -28,6 +28,7 @@ func Register(mux *http.ServeMux, a *app.App) {
 
 	mux.Handle("GET /api/v1/admin/stats", mw(hd(h.stats)))
 	mux.Handle("GET /api/v1/admin/users", mw(hd(h.listUsers)))
+	mux.Handle("POST /api/v1/admin/users", mw(hd(h.createUser)))
 	mux.Handle("PATCH /api/v1/admin/users/{id}", mw(hd(h.patchUser)))
 	mux.Handle("DELETE /api/v1/admin/users/{id}", mw(hd(h.deleteUser)))
 	mux.Handle("POST /api/v1/admin/users/{id}/send-reset", mw(hd(h.sendReset)))
