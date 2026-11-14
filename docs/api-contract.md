@@ -200,4 +200,4 @@ SPA 路由 fallback 由后端静态服务处理（非 /api、/dav、静态资源
 
 ## 9. 邮件（内部接口）
 
-kind：verify_email（含验证链接）、reset_password、booking_confirmed（主人与客人各一封，附 ICS）、booking_cancelled、booking_rescheduled、email_changed。链接基于配置的 `base_url`。开发模式（mail.mode=outbox）只写 mail_outbox，管理员页与 e2e 用 GET /admin/emails 读取链接。
+kind：verify_email（含验证链接）、reset_password、booking_confirmed（主人与客人各一封，附 ICS）、booking_cancelled、booking_rescheduled、email_changed、event_reminder（事件提醒 worker 发送，收件人为日历属主）。链接基于配置的 `base_url`。开发模式（mail.mode=outbox）只写 mail_outbox，管理员页与 e2e 用 GET /admin/emails 读取链接；纯文本附件（如 ICS）追加在 body_text 尾部留档。

@@ -1,7 +1,5 @@
 // booking 包 HTTP 层：handler 类型、助手与路由注册。
-// 注意（交接）：本文件为收尾时的最小接线——只挂已实现的端点。
-// bookings.go（下单事务/取消/改期/GET /me/bookings）与 pub.go（/pub/u/*、/pub/b/*）
-// 尚未实现，见仓库 issue 清单。
+// 公开端点（/api/v1/pub/*）由上层 pubGuard 施加限流（120/min/IP，下单 10/h/IP）。
 package booking
 
 import (
@@ -54,7 +52,16 @@ func Register(mux *http.ServeMux, a *app.App) {
 	mux.HandleFunc("DELETE /api/v1/external-feeds/{id}", h.deleteFeed)
 	mux.HandleFunc("POST /api/v1/external-feeds/{id}/sync", h.syncFeed)
 
-	// TODO(接手): bookings.go / pub.go 完成后补挂：
-	//   GET/POST /api/v1/me/bookings、POST /api/v1/bookings/{id}/cancel、
-	//   /api/v1/pub/u/{username}[...]、/api/v1/pub/b/{token}[...]
+	// 成交链路：主人视角
+	mux.HandleFunc("GET /api/v1/me/bookings", h.meBookings)
+	mux.HandleFunc("POST /api/v1/bookings/{id}/cancel", h.hostCancel)
+
+	// 成交链路：公开预约页与管理令牌（无认证；限流由上层 pubGuard 施加）
+	mux.HandleFunc("GET /api/v1/pub/u/{username}", h.pubHostProfile)
+	mux.HandleFunc("GET /api/v1/pub/u/{username}/{slug}", h.pubEventType)
+	mux.HandleFunc("GET /api/v1/pub/u/{username}/{slug}/slots", h.pubSlots)
+	mux.HandleFunc("POST /api/v1/pub/u/{username}/{slug}/bookings", h.pubCreateBooking)
+	mux.HandleFunc("GET /api/v1/pub/b/{token}", h.pubManageView)
+	mux.HandleFunc("POST /api/v1/pub/b/{token}/cancel", h.pubCancel)
+	mux.HandleFunc("POST /api/v1/pub/b/{token}/reschedule", h.pubReschedule)
 }

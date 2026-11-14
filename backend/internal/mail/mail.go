@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/smtp"
+	"strings"
 	"time"
 )
 
@@ -17,6 +18,15 @@ type Message struct {
 	Text    string
 	HTML    string
 	Kind    string // verify_email / reset_password / booking_confirmed / ...
+	// Attachments 纯文本类附件（如 text/calendar 的 ICS）；outbox 模式追加到正文留档。
+	Attachments []Attachment
+}
+
+// Attachment 是纯文本附件（避免引入二进制编码复杂度；日历邀请场景足够）。
+type Attachment struct {
+	Filename    string
+	ContentType string
+	Text        string
 }
 
 // Sender 邮件发送接口。
@@ -29,8 +39,12 @@ type Outbox struct{ DB *sql.DB }
 
 func (o *Outbox) Send(ctx context.Context, msg Message) error {
 	now := time.Now().UTC().Format(time.RFC3339)
+	text := msg.Text
+	for _, att := range msg.Attachments {
+		text += "\n\n--- attachment: " + att.Filename + " (" + att.ContentType + ") ---\n" + att.Text
+	}
 	_, err := o.DB.ExecContext(ctx, `INSERT INTO mail_outbox (to_addr, subject, body_text, body_html, kind, status, created_at, sent_at) VALUES (?,?,?,?,?, 'sent', ?, ?)`,
-		msg.To, msg.Subject, msg.Text, msg.HTML, msg.Kind, now, now)
+		msg.To, msg.Subject, text, msg.HTML, msg.Kind, now, now)
 	return err
 }
 
@@ -54,23 +68,47 @@ func (s *SMTP) Send(ctx context.Context, msg Message) error {
 		if s.Username != "" {
 			auth = smtp.PlainAuth("", s.Username, s.Password, s.Host)
 		}
-		from := s.From
-		to := []string{msg.To}
-		body := "From: " + from + "\r\nTo: " + msg.To + "\r\nSubject: " + msg.Subject + "\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n" + msg.Text
-		err = smtp.SendMail(addr, auth, from, to, []byte(body))
+		err = smtp.SendMail(addr, auth, s.From, []string{msg.To}, buildMIME(s.From, msg))
 	}
 	if s.DB != nil {
 		status, dbErr := "sent", ""
 		if err != nil {
 			status, dbErr = "failed", err.Error()
 		}
+		text := msg.Text
+		for _, att := range msg.Attachments {
+			text += "\n\n--- attachment: " + att.Filename + " (" + att.ContentType + ") ---\n" + att.Text
+		}
 		_, _ = s.DB.ExecContext(ctx, `INSERT INTO mail_outbox (to_addr, subject, body_text, body_html, kind, status, error, sent_at) VALUES (?,?,?,?,?,?,?,?)`,
-			msg.To, msg.Subject, msg.Text, msg.HTML, msg.Kind, status, dbErr, time.Now().UTC().Format(time.RFC3339))
+			msg.To, msg.Subject, text, msg.HTML, msg.Kind, status, dbErr, time.Now().UTC().Format(time.RFC3339))
 	}
 	if err != nil {
 		s.Log.Error("smtp_send_failed", "to", msg.To, "kind", msg.Kind, "error", err)
 	}
 	return err
+}
+
+// buildMIME 构造完整邮件：无附件时纯文本；有附件时 multipart/mixed。
+func buildMIME(from string, msg Message) []byte {
+	headers := "From: " + from + "\r\nTo: " + msg.To + "\r\nSubject: " + msg.Subject +
+		"\r\nMIME-Version: 1.0\r\n"
+	if len(msg.Attachments) == 0 {
+		return []byte(headers + "Content-Type: text/plain; charset=utf-8\r\n\r\n" + msg.Text)
+	}
+	boundary := "calhub-" + fmt.Sprintf("%x", time.Now().UnixNano())
+	var b strings.Builder
+	b.WriteString(headers)
+	b.WriteString("Content-Type: multipart/mixed; boundary=\"" + boundary + "\"\r\n\r\n")
+	b.WriteString("--" + boundary + "\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n")
+	b.WriteString(msg.Text)
+	for _, att := range msg.Attachments {
+		b.WriteString("\r\n--" + boundary + "\r\n")
+		b.WriteString("Content-Type: " + att.ContentType + "\r\n")
+		b.WriteString("Content-Disposition: attachment; filename=\"" + att.Filename + "\"\r\n\r\n")
+		b.WriteString(att.Text)
+	}
+	b.WriteString("\r\n--" + boundary + "--")
+	return []byte(b.String())
 }
 
 func (s *SMTP) sendTLS(addr string, msg Message) error {
@@ -98,8 +136,7 @@ func (s *SMTP) sendTLS(addr string, msg Message) error {
 	if err != nil {
 		return err
 	}
-	body := "From: " + s.From + "\r\nTo: " + msg.To + "\r\nSubject: " + msg.Subject + "\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n" + msg.Text
-	if _, err := w.Write([]byte(body)); err != nil {
+	if _, err := w.Write(buildMIME(s.From, msg)); err != nil {
 		return err
 	}
 	return w.Close()
