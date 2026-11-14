@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Open Cal Hub">
+  <!-- 主视觉：日历页 + 链接环 —— 日历为主体，交叠圆环表达 hub 与共享 -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4F6EF7"/>
+      <stop offset="1" stop-color="#7C5CF5"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="12" width="112" height="108" rx="20" fill="url(#bg)"/>
+  <rect x="8" y="12" width="112" height="108" rx="20" fill="none" stroke="#ffffff" stroke-opacity="0.15" stroke-width="2"/>
+  <rect x="36" y="4" width="8" height="20" rx="4" fill="#2E3A8C"/>
+  <rect x="84" y="4" width="8" height="20" rx="4" fill="#2E3A8C"/>
+  <rect x="8" y="34" width="112" height="3" fill="#ffffff" fill-opacity="0.35"/>
+  <g fill="#ffffff">
+    <circle cx="36" cy="56" r="6" opacity="0.45"/>
+    <circle cx="64" cy="56" r="6" opacity="0.45"/>
+    <circle cx="92" cy="56" r="6" opacity="0.45"/>
+    <circle cx="36" cy="76" r="6" opacity="0.45"/>
+  </g>
+  <circle cx="58" cy="90" r="16" fill="none" stroke="#ffffff" stroke-width="5"/>
+  <circle cx="78" cy="90" r="16" fill="none" stroke="#9BE8D8" stroke-width="5"/>
+</svg>
