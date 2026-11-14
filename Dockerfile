@@ -38,7 +38,7 @@ RUN GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
     -o /out/calhub ./cmd/calhub
 
 # ---------- 阶段三：运行镜像（alpine，非 root） ----------
-FROM alpine:3.22
+FROM alpine:3.24
 ARG VERSION=dev
 LABEL org.opencontainers.image.title="Open Cal Hub" \
       org.opencontainers.image.description="自托管的开源日历与预约平台（单二进制 + SQLite）" \
