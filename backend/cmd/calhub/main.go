@@ -21,6 +21,7 @@ import (
 	"github.com/linuxsuren/open-cal-hub/backend/internal/mail"
 	"github.com/linuxsuren/open-cal-hub/backend/internal/remind"
 	"github.com/linuxsuren/open-cal-hub/backend/internal/server"
+	"github.com/linuxsuren/open-cal-hub/backend/internal/user"
 )
 
 func main() {
@@ -72,7 +73,18 @@ func main() {
 	}
 
 	a := &app.App{Cfg: cfg, DB: database, Log: log, Mail: sender, Signer: auth.NewSigner(secret, cfg.Auth.AccessTokenTTL)}
-	registerRoutes(a) // 各功能包在此挂载（auth/user/admin/cal/booking/dav）
+	registerRoutes(a) // 各功能包在此挂载（auth/user/admin/cal/booking/dav）；回填 OnUserRegistered 等钩子
+
+	// 初始管理员引导（空库首启）：CALHUB_AUTH_BOOTSTRAP_ADMIN_EMAIL/PASSWORD
+	if created, err := user.BootstrapAdminFromConfig(context.Background(), a,
+		cfg.Auth.BootstrapAdminEmail, cfg.Auth.BootstrapAdminPassword); err != nil {
+		log.Error("bootstrap_admin_failed", "error", err)
+		os.Exit(1)
+	} else if created {
+		log.Warn("bootstrap_admin_created",
+			"email", cfg.Auth.BootstrapAdminEmail,
+			"hint", "请立即登录修改密码，并移除 bootstrap 环境变量")
+	}
 
 	// 提醒 worker 随服务生命周期启停
 	workerCtx, workerCancel := context.WithCancel(context.Background())

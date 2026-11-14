@@ -32,6 +32,8 @@
 | `auth.refresh_ttl` | `CALHUB_AUTH_REFRESH_TTL` | `720h`（30 天） | 刷新令牌有效期；每次刷新轮换，检测到重用会吊销整个令牌族 |
 | `auth.first_user_admin` | `CALHUB_AUTH_FIRST_USER_ADMIN` | `true` | 首个注册用户自动成为管理员；对外开站建议关闭，由管理员手动提权 |
 | `auth.require_email_validation` | `CALHUB_AUTH_REQUIRE_EMAIL_VALIDATION` | `true` | 注册后必须完成邮箱验证才能登录。本地试用时可设为 `false`，或保持 `mail.mode: outbox` 在管理台「邮件」页取验证链接 |
+| `auth.bootstrap_admin_email` | `CALHUB_AUTH_BOOTSTRAP_ADMIN_EMAIL` | 空 | 初始管理员引导：空库首次启动时自动创建 admin 账号，适合脚本化部署。需与 bootstrap 密码同时配置；账号视为已验证。创建后建议立即改密并移除这两个变量（已有用户的库幂等跳过） |
+| `auth.bootstrap_admin_password` | `CALHUB_AUTH_BOOTSTRAP_ADMIN_PASSWORD` | 空 | 初始管理员引导密码（至少 8 位且含字母与数字）。只配置其一会导致启动失败，避免半配置静默失效 |
 
 ## mail — 邮件
 
