@@ -6,6 +6,8 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/linuxsuren/open-cal-hub/backend/internal/app"
@@ -26,8 +28,10 @@ func Register(mux *http.ServeMux, a *app.App) {
 	}
 
 	// 限流：登录 10/min/IP；注册/忘记密码/重发验证 5/h/IP（契约 §0/架构 §5）。
-	limLogin := httpx.NewRateLimiter(10, time.Minute)
-	limRegister := httpx.NewRateLimiter(5, time.Hour)
+	// 环境变量可放宽（e2e/联调多用户场景）：CALHUB_RATELIMIT_LOGIN_PER_MIN、
+	// CALHUB_RATELIMIT_REGISTER_PER_HOUR；未设置时保持线上默认。
+	limLogin := httpx.NewRateLimiter(rateLimitEvents("CALHUB_RATELIMIT_LOGIN_PER_MIN", 10), time.Minute)
+	limRegister := httpx.NewRateLimiter(rateLimitEvents("CALHUB_RATELIMIT_REGISTER_PER_HOUR", 5), time.Hour)
 
 	authMW := auth.Middleware(a.Signer, a.LoadUser)
 	hd := func(f http.HandlerFunc) http.Handler { return f }
@@ -86,4 +90,14 @@ func loadActiveUser(a *app.App) auth.UserLoader {
 		}
 		return &auth.User{ID: u.ID, Username: u.Username, Email: u.Email, Role: u.Role}, nil
 	}
+}
+
+// rateLimitEvents 读限流事件数的环境覆盖；非法或缺省返回 def。
+func rateLimitEvents(envKey string, def int) int {
+	if v := os.Getenv(envKey); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			return n
+		}
+	}
+	return def
 }

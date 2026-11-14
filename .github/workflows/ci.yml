@@ -72,10 +72,8 @@ jobs:
         run: pnpm test
 
   # E2E：走真实二进制（前端产物 embed 进 calhub）+ Playwright chromium。
-  # 阶段二（后端功能包就绪）后由 qa 启用：去掉下面的 if: false 并核对步骤。
   e2e:
     name: e2e (playwright)
-    if: false # TODO(qa, 阶段二): 后端功能包合入后启用
     needs: [backend, frontend]
     runs-on: ubuntu-latest
     defaults:
@@ -85,19 +83,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      # 阶段二填充（qa），预期形态：
-      # - uses: actions/setup-go@v7         # go build ./cmd/calhub 需要
-      #   with: { go-version-file: backend/go.mod, cache-dependency-path: backend/go.sum }
-      # - uses: pnpm/action-setup@v6
-      #   with: { version: 12 }
-      # - uses: actions/setup-node@v7
-      #   with: { node-version: 24, cache: pnpm, cache-dependency-path: e2e/pnpm-lock.yaml }
-      # - name: Assemble binary
-      #   working-directory: .
-      #   run: |
-      #     ./scripts/build-frontend.sh
-      #     cd backend && go build ./cmd/calhub
-      # - name: Install browsers
-      #   run: pnpm exec playwright install --with-deps chromium
-      # - name: Run e2e
-      #   run: pnpm exec playwright test
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 12
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: e2e/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Assemble binary
+        working-directory: .
+        run: |
+          ./scripts/build-frontend.sh
+          cd backend && go build ./cmd/calhub
+
+      - name: Install browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run e2e
+        run: pnpm exec playwright test
