@@ -169,6 +169,7 @@ POST /bookings/{id}/cancel `{reason?}` → null
 
 GET /admin/stats → `{"data":{"users":100,"active_users_30d":60,"calendars":210,"events":5200,"bookings_30d":340,"pending_outbox":0}}`
 GET /admin/users?page&page_size&query&status&role → 用户列表（含 calendars_count）
+POST /admin/users `{email, username?, password?, display_name?, timezone?, role?}` → 201 `{"user": {...User}, "reset_email_sent": bool}`（管理员新增用户；账号视为已验证；`password` 缺省时生成随机密码并发送重置密码邮件由用户自行设置——响应不回显密码；提供 `password` 时校验强度并跳过邮件）
 PATCH /admin/users/{id} `{status?, role?}` → User；不可对自己降级/停用 → common/validation_failed
 DELETE /admin/users/{id} → null（status=deleted，邮箱改写为 `deleted+{id}@invalid`）
 POST /admin/users/{id}/send-reset → null（触发重置密码邮件）
