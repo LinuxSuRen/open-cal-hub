@@ -127,6 +127,7 @@ curl -u rick:<应用密码> -X PROPFIND -H "Depth: 1" \
 
 - [配置参考](docs/configuration.md)——全部配置项、环境变量与默认值
 - [部署指南](docs/deployment.md)——二进制 / Docker / compose / systemd / 反向代理与 TLS
+- [外部日历接入](docs/integrations.md)——Google/Outlook/QQ/iCloud 日历的 ICS 订阅地址获取与安全注意
 - [架构设计](docs/architecture.md)——拓扑、数据模型与关键决策
 - [API 契约](docs/api-contract.md)——REST 与 CalDAV 接口的唯一事实源
 
