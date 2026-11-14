@@ -45,6 +45,14 @@ func Register(mux *http.ServeMux, a *app.App) {
 	mux.Handle("POST /api/v1/auth/forgot-password", limRegister.Middleware("forgot", hd(h.forgotPassword)))
 	mux.Handle("POST /api/v1/auth/reset-password", limRegister.Middleware("reset", hd(h.resetPassword)))
 
+	// OAuth 登录（provider 未配置时端点返回 404）
+	mux.HandleFunc("GET /api/v1/auth/oauth/{provider}/authorize", h.oauthAuthorize)
+	mux.HandleFunc("GET /api/v1/auth/oauth/{provider}/callback", h.oauthCallback)
+
+	// OAuth 绑定管理（登录态）
+	mux.Handle("GET /api/v1/me/oauth", authMW(hd(h.listOAuthIdentities)))
+	mux.Handle("DELETE /api/v1/me/oauth/{provider}", authMW(hd(h.unbindOAuth)))
+
 	// 登录态：会话管理
 	mux.Handle("GET /api/v1/auth/sessions", authMW(hd(h.listSessions)))
 	mux.Handle("DELETE /api/v1/auth/sessions/{id}", authMW(hd(h.revokeSession)))

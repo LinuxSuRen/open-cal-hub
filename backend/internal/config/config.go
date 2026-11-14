@@ -41,6 +41,25 @@ type Auth struct {
 	// 两项需同时配置；创建后建议改密并移除配置。
 	BootstrapAdminEmail    string `yaml:"bootstrap_admin_email"`
 	BootstrapAdminPassword string `yaml:"bootstrap_admin_password"`
+	// OAuth 登录（issue #2）：client_id/secret 为空则该 provider 不启用。
+	OAuth OAuth `yaml:"oauth"`
+}
+
+// OAuth 提供方配置；URL 项默认公网端点，测试可用本地地址覆盖。
+type OAuth struct {
+	GitHub       OAuthProvider `yaml:"github"`
+	Google       OAuthProvider `yaml:"google"`
+	RedirectBase string        `yaml:"redirect_base"` // 缺省用 server.base_url
+}
+
+// OAuthProvider 单个提供方端点。
+type OAuthProvider struct {
+	ClientID     string `yaml:"client_id"`
+	ClientSecret string `yaml:"client_secret"`
+	AuthorizeURL string `yaml:"authorize_url"`
+	TokenURL     string `yaml:"token_url"`
+	UserInfoURL  string `yaml:"userinfo_url"`
+	EmailsURL    string `yaml:"emails_url"` // GitHub 专用
 }
 
 type Mail struct {
@@ -109,6 +128,32 @@ func (c *Config) normalize() {
 	if c.Mail.Mode != "smtp" {
 		c.Mail.Mode = "outbox"
 	}
+	// OAuth 默认端点（测试可用本地地址覆盖）
+	if c.Auth.OAuth.GitHub.AuthorizeURL == "" {
+		c.Auth.OAuth.GitHub.AuthorizeURL = "https://github.com/login/oauth/authorize"
+	}
+	if c.Auth.OAuth.GitHub.TokenURL == "" {
+		c.Auth.OAuth.GitHub.TokenURL = "https://github.com/login/oauth/access_token"
+	}
+	if c.Auth.OAuth.GitHub.UserInfoURL == "" {
+		c.Auth.OAuth.GitHub.UserInfoURL = "https://api.github.com/user"
+	}
+	if c.Auth.OAuth.GitHub.EmailsURL == "" {
+		c.Auth.OAuth.GitHub.EmailsURL = "https://api.github.com/user/emails"
+	}
+	if c.Auth.OAuth.Google.AuthorizeURL == "" {
+		c.Auth.OAuth.Google.AuthorizeURL = "https://accounts.google.com/o/oauth2/v2/auth"
+	}
+	if c.Auth.OAuth.Google.TokenURL == "" {
+		c.Auth.OAuth.Google.TokenURL = "https://oauth2.googleapis.com/token"
+	}
+	if c.Auth.OAuth.Google.UserInfoURL == "" {
+		c.Auth.OAuth.Google.UserInfoURL = "https://openidconnect.googleapis.com/v1/userinfo"
+	}
+	if c.Auth.OAuth.RedirectBase == "" {
+		c.Auth.OAuth.RedirectBase = c.Server.BaseURL
+	}
+	c.Auth.OAuth.RedirectBase = strings.TrimRight(c.Auth.OAuth.RedirectBase, "/")
 }
 
 func applyEnv(c *Config) {
@@ -149,6 +194,18 @@ func applyEnv(c *Config) {
 	setBool("CALHUB_AUTH_REQUIRE_EMAIL_VALIDATION", &c.Auth.RequireEmailValidation)
 	setStr("CALHUB_AUTH_BOOTSTRAP_ADMIN_EMAIL", &c.Auth.BootstrapAdminEmail)
 	setStr("CALHUB_AUTH_BOOTSTRAP_ADMIN_PASSWORD", &c.Auth.BootstrapAdminPassword)
+	for prov, dst := range map[string]*OAuthProvider{
+		"GITHUB": &c.Auth.OAuth.GitHub,
+		"GOOGLE": &c.Auth.OAuth.Google,
+	} {
+		setStr("CALHUB_AUTH_OAUTH_"+prov+"_CLIENT_ID", &dst.ClientID)
+		setStr("CALHUB_AUTH_OAUTH_"+prov+"_CLIENT_SECRET", &dst.ClientSecret)
+		setStr("CALHUB_AUTH_OAUTH_"+prov+"_AUTHORIZE_URL", &dst.AuthorizeURL)
+		setStr("CALHUB_AUTH_OAUTH_"+prov+"_TOKEN_URL", &dst.TokenURL)
+		setStr("CALHUB_AUTH_OAUTH_"+prov+"_USERINFO_URL", &dst.UserInfoURL)
+		setStr("CALHUB_AUTH_OAUTH_"+prov+"_EMAILS_URL", &dst.EmailsURL)
+	}
+	setStr("CALHUB_AUTH_OAUTH_REDIRECT_BASE", &c.Auth.OAuth.RedirectBase)
 	setStr("CALHUB_MAIL_MODE", &c.Mail.Mode)
 	setStr("CALHUB_MAIL_FROM", &c.Mail.From)
 	setStr("CALHUB_MAIL_HOST", &c.Mail.Host)

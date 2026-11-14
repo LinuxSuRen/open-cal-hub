@@ -34,6 +34,12 @@
 | `auth.require_email_validation` | `CALHUB_AUTH_REQUIRE_EMAIL_VALIDATION` | `true` | 注册后必须完成邮箱验证才能登录。本地试用时可设为 `false`，或保持 `mail.mode: outbox` 在管理台「邮件」页取验证链接 |
 | `auth.bootstrap_admin_email` | `CALHUB_AUTH_BOOTSTRAP_ADMIN_EMAIL` | 空 | 初始管理员引导：空库首次启动时自动创建 admin 账号，适合脚本化部署。需与 bootstrap 密码同时配置；账号视为已验证。创建后建议立即改密并移除这两个变量（已有用户的库幂等跳过） |
 | `auth.bootstrap_admin_password` | `CALHUB_AUTH_BOOTSTRAP_ADMIN_PASSWORD` | 空 | 初始管理员引导密码（至少 8 位且含字母与数字）。只配置其一会导致启动失败，避免半配置静默失效 |
+| `auth.oauth.github.client_id` | `CALHUB_AUTH_OAUTH_GITHUB_CLIENT_ID` | 空 | GitHub OAuth 登录。client_id 与 secret 同时配置时启用；回调地址为 `<base_url>/api/v1/auth/oauth/github/callback`，请在 GitHub OAuth App 中登记 |
+| `auth.oauth.github.client_secret` | `CALHUB_AUTH_OAUTH_GITHUB_CLIENT_SECRET` | 空 | GitHub OAuth 客户端密钥（仅服务端使用，不出后端） |
+| `auth.oauth.google.client_id` | `CALHUB_AUTH_OAUTH_GOOGLE_CLIENT_ID` | 空 | Google OAuth 登录（scope：openid email profile）。需同时在 Google Cloud 控制台登记回调地址 `<base_url>/api/v1/auth/oauth/google/callback` |
+| `auth.oauth.google.client_secret` | `CALHUB_AUTH_OAUTH_GOOGLE_CLIENT_SECRET` | 空 | Google OAuth 客户端密钥 |
+| `auth.oauth.redirect_base` | `CALHUB_AUTH_OAUTH_REDIRECT_BASE` | 同 `server.base_url` | OAuth 回调地址前缀（base_url 与实际对外域名不一致的反代场景使用） |
+| `auth.oauth.*.authorize_url` 等 | `CALHUB_AUTH_OAUTH_{GITHUB,GOOGLE}_{AUTHORIZE,TOKEN,USERINFO,EMAILS}_URL` | 官方端点 | 端点覆盖（联调/测试环境指向本地模拟服务用） |
 
 ## mail — 邮件
 
