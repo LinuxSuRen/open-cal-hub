@@ -1,5 +1,7 @@
 # Open Cal Hub
 
+<p align="left"><img src="assets/logo.svg" width="96" alt="Open Cal Hub Logo" /></p>
+
 [![Release](https://github.com/linuxsuren/open-cal-hub/actions/workflows/release.yml/badge.svg)](https://github.com/linuxsuren/open-cal-hub/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 

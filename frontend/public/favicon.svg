@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Open Cal Hub">
+  <!-- favicon：字母标 C（Calendar）+ 脉冲点，小尺寸辨识度优先 -->
+  <defs>
+    <linearGradient id="bgc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#39C48F"/>
+      <stop offset="1" stop-color="#2E8FD8"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="116" height="116" rx="30" fill="url(#bgc)"/>
+  <path d="M 84 42 A 28 28 0 1 0 84 86" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="88" cy="64" r="9" fill="#FFD166"/>
+</svg>
