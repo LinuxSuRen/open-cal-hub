@@ -100,16 +100,16 @@ function statusTag(u: AdminUser): { text: string; type: 'success' | 'info' | 'da
 <template>
   <div>
     <h2 class="asec__title">{{ t('admin.nav.users') }}</h2>
-    <div class="users__filters">
-      <ElInput v-model="query" :placeholder="t('admin.users.search')" clearable style="width: 240px" @keyup.enter="search" />
+    <div class="users__filters flt-bar">
+      <ElInput v-model="query" :placeholder="t('admin.users.search')" clearable class="users__f-query" @keyup.enter="search" />
       <ElButton type="primary" @click="search">{{ t('admin.users.searchBtn') }}</ElButton>
-      <ElSelect v-model="status" style="width: 140px" @change="search">
+      <ElSelect v-model="status" class="users__f-select" @change="search">
         <ElOption :label="t('admin.users.statusAll')" value="" />
         <ElOption :label="t('admin.status.active')" value="active" />
         <ElOption :label="t('admin.status.disabled')" value="disabled" />
         <ElOption :label="t('admin.status.deleted')" value="deleted" />
       </ElSelect>
-      <ElSelect v-model="role" style="width: 140px" @change="search">
+      <ElSelect v-model="role" class="users__f-select" @change="search">
         <ElOption :label="t('admin.users.roleAll')" value="" />
         <ElOption :label="t('admin.role.user')" value="user" />
         <ElOption :label="t('admin.role.admin')" value="admin" />
@@ -168,5 +168,10 @@ function statusTag(u: AdminUser): { text: string; type: 'success' | 'info' | 'da
 <style scoped>
 .asec__title { margin: 0 0 var(--space-5); font-size: 17px; }
 .users__filters { display: flex; gap: var(--space-3); margin-bottom: var(--space-4); flex-wrap: wrap; }
+.users__f-query { width: 240px; }
+.users__f-select { width: 140px; }
+@media (max-width: 768px) {
+  .users__f-query, .users__f-select { width: auto; flex: 1 1 140px; }
+}
 .users__pager { display: flex; justify-content: flex-end; margin-top: var(--space-4); }
 </style>

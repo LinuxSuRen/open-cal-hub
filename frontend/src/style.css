@@ -69,3 +69,29 @@ a:hover { color: var(--color-accent-hover); }
 /* 管理台/内容页骨架 */
 .page { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
 .block { margin-top: 16px; }
+
+/* ---------------------------------------------------------------------------
+ * 响应式基座（issue #25）
+ * 断点约定：≤768px 手机竖屏/横屏；769-1024px 平板；>1024px 桌面。
+ * 页面级特例在各组件 scoped 样式内覆盖；此处只放全局规则与工具类。
+ * ------------------------------------------------------------------------ */
+img, video { max-width: 100%; }
+
+/* 宽表格/预置内容横向滚动容器（不撑破页面） */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* 过滤/搜索栏（管理台列表的 inline 宽度在小屏放开为弹性行） */
+.flt-bar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+
+@media (max-width: 768px) {
+  .page { padding: 16px 12px; }
+  .btn { padding: 8px 14px; }
+  /* 深层组件（Element Plus 等）内联宽度在小屏失效，改为自适应 */
+  .flt-bar .el-input, .flt-bar .el-select { width: auto !important; flex: 1 1 140px; }
+  /* 表单对话框/面板内的固定宽度输入放开 */
+  .form-narrow-input { max-width: 100% !important; width: 100% !important; }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .page { padding: 24px 20px; }
+}

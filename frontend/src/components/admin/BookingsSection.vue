@@ -39,10 +39,10 @@ function search(): void {
 <template>
   <div>
     <h2 class="asec__title">{{ t('admin.nav.bookings') }}</h2>
-    <div class="bks__filters">
-      <ElInput v-model="query" :placeholder="t('admin.bookings.search')" clearable style="width: 240px" @keyup.enter="search" />
+    <div class="bks__filters flt-bar">
+      <ElInput v-model="query" :placeholder="t('admin.bookings.search')" clearable class="bks__f-query" @keyup.enter="search" />
       <ElButton type="primary" @click="search">{{ t('admin.users.searchBtn') }}</ElButton>
-      <ElSelect v-model="status" style="width: 140px" @change="search">
+      <ElSelect v-model="status" class="bks__f-select" @change="search">
         <ElOption :label="t('admin.users.statusAll')" value="" />
         <ElOption :label="t('admin.booking.confirmed')" value="confirmed" />
         <ElOption :label="t('admin.booking.cancelled')" value="cancelled" />
@@ -84,5 +84,10 @@ function search(): void {
 <style scoped>
 .asec__title { margin: 0 0 var(--space-5); font-size: 17px; }
 .bks__filters { display: flex; gap: var(--space-3); margin-bottom: var(--space-4); flex-wrap: wrap; }
+.bks__f-query { width: 240px; }
+.bks__f-select { width: 140px; }
+@media (max-width: 768px) {
+  .bks__f-query, .bks__f-select { width: auto; flex: 1 1 140px; }
+}
 .bks__pager { display: flex; justify-content: flex-end; margin-top: var(--space-4); }
 </style>

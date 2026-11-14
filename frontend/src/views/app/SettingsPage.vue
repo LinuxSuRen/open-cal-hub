@@ -330,6 +330,10 @@ const hasOtherSessions = computed(() => sessions.value.some(s => !s.current))
 .st__revoke { padding: 4px 12px; font-size: 13px; }
 .st__apform { display: flex; gap: var(--space-3); margin-bottom: var(--space-4); flex-wrap: wrap; }
 .st__ap-input { width: 240px; }
+@media (max-width: 560px) {
+  .st__input, .st__ap-input { max-width: 100%; width: 100%; }
+  .st__panel { padding: var(--space-4); }
+}
 .st__fresh { display: flex; flex-direction: column; gap: var(--space-3); align-items: stretch; }
 .st__fresh-pw {
   font-family: var(--font-mono); font-size: 16px; padding: var(--space-3) var(--space-4);

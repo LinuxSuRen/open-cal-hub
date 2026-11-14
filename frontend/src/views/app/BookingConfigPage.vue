@@ -379,6 +379,10 @@ const userTz = computed(() => authState.user?.timezone ?? 'UTC')
 .feedform { display: flex; gap: var(--space-3); margin: var(--space-5) 0 var(--space-4); flex-wrap: wrap; }
 .feedform__name { width: 200px; }
 .feedform__url { flex: 1; min-width: 240px; font-family: var(--font-mono); font-size: 13px; }
+@media (max-width: 560px) {
+  .feedform__name { width: 100%; }
+  .feedform__url { min-width: 0; }
+}
 .feedcard__name { font-weight: 600; }
 .feedcard__sync { color: var(--color-text-dim); font-size: 12px; }
 .feedcard__url { margin: var(--space-2) 0 0; color: var(--color-text-secondary); font-size: 13px; word-break: break-all; font-family: var(--font-mono); }

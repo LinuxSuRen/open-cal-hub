@@ -57,4 +57,16 @@ const emit = defineEmits<{ (e: 'nav', dir: 1 | -1): void; (e: 'select', dateKey:
 .side__role { font-size: 11px; color: var(--color-text-dim); flex-shrink: 0; }
 .side__empty { font-size: 12px; color: var(--color-text-dim); margin: 0; }
 .side__manage { font-size: 13px; margin-top: var(--space-2); }
+
+/* 窄屏（侧栏堆叠为顶部条）：迷你月历与筛选横向并排、日历项换行 */
+@media (max-width: 900px) {
+  .side {
+    width: 100%; flex-direction: row; flex-wrap: wrap; align-items: flex-start;
+    gap: var(--space-4); border-right: none; border-bottom: 1px solid var(--color-border-subtle);
+    overflow-y: visible;
+  }
+  .side__section { flex: 1 1 240px; }
+  .side__list { flex-direction: row; flex-wrap: wrap; gap: var(--space-2); }
+}
+
 </style>
