@@ -282,4 +282,13 @@ function agendaTime(item: CalEvent): string {
 .calp__row-loc { font-size: 12px; color: var(--color-text-dim); margin-left: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .calp__empty { color: var(--color-text-dim); font-size: 13px; padding: var(--space-3); }
 .calp__empty-panel { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); color: var(--color-text-dim); }
+
+/* 窄屏/平板：侧栏堆叠为顶部条，主区独占 */
+@media (max-width: 900px) {
+  .calp { flex-direction: column; }
+  .calp__toolbar { flex-wrap: wrap; row-gap: var(--space-2); }
+  .calp__right { margin-left: 0; width: 100%; justify-content: flex-end; }
+  .calp__view { padding: 0 var(--space-3) var(--space-3); }
+}
+
 </style>

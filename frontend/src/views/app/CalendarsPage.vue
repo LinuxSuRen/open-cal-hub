@@ -509,9 +509,13 @@ async function submitDelete() {
 .cshare__ops { display: flex; gap: var(--space-2); }
 .cshare__hint { margin: 0; font-size: 12px; color: var(--color-text-dim); }
 .cmem { display: flex; flex-direction: column; gap: var(--space-3); }
-.cmem__add { display: flex; gap: var(--space-2); }
-.cmem__account { flex: 1; }
+.cmem__add { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.cmem__account { flex: 1; min-width: 180px; }
 .cmem__role { width: 110px; }
+@media (max-width: 560px) {
+  .cshare__new, .cmem__add { flex-direction: column; }
+  .cshare__expiry, .cmem__role { width: 100%; }
+}
 .cmem__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .cmem__item {
   display: flex; align-items: center; gap: var(--space-3);

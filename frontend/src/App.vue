@@ -78,4 +78,12 @@ onMounted(ensureMeta)
 }
 .app-toast--error { background: var(--color-danger); }
 @keyframes app-toast-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* 窄屏（手机）：头部紧凑，导航保持横向滚动，用户名折叠 */
+@media (max-width: 768px) {
+  .app-header { gap: var(--space-3); padding: 0 var(--space-3); }
+  .app-header__nav { gap: var(--space-3); }
+  .app-header__name { display: none; }
+}
+
 </style>
